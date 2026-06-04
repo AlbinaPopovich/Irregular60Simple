@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер неправильных глаголов</title>
+    <style>
+        /* Общие стили */
+        :root {
+            --color-1: #ff6b6b; /* Red */
+            --color-2: #f9a826; /* Orange */
+            --color-3: #1dd1a1; /* Green */
+            --color-4: #48dbfb; /* Blue */
+            --color-5: #9b59b6; /* Purple */
+            --color-6: #576574; /* Gray */
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            width: 100%;
+            /* ИЗМЕНЕНО: Сделал контейнер еще меньше для компактности боксов */
+            max-width: 650px; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1, h2 {
+            color: var(--text-color);
+            margin-bottom: 30px;
+        }
+
+        /* Стили главного меню */
+        #main-menu {
+            width: 100%;
+        }
+        #verb-boxes-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px; /* Уменьшил отступ */
+        }
+        .verb-box {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            border-radius: 12px;
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+            box-sizing: border-box;
+        }
+        .verb-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .box-color-0 { background: linear-gradient(45deg, var(--color-1), #ff8e8e); }
+        .box-color-1 { background: linear-gradient(45deg, var(--color-2), #fbc531); }
+        .box-color-2 { background: linear-gradient(45deg, var(--color-3), #55e6c1); }
+        .box-color-3 { background: linear-gradient(45deg, var(--color-4), #7ed6df); }
+        .box-color-4 { background: linear-gradient(45deg, var(--color-5), #be90d4); }
+        .box-color-5 { background: linear-gradient(45deg, var(--color-6), #8395a7); }
+
+        /* Стили экрана тренажера */
+        #trainer-view, #completion-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        #card {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            min-height: 250px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 30px;
+            cursor: pointer;
+            box-sizing: border-box;
+            position: relative;
+            user-select: none;
+        }
+        .card-front h2 {
+            font-size: 3rem; margin: 0;
+        }
+        .card-front p {
+            font-size: 1.5rem; color: #777; margin-top: 10px;
+        }
+        .card-back h3 {
+            font-size: 1.8rem; margin: 0; color: #007bff; font-weight: 500;
+        }
+        .audio-buttons {
+            margin-top: 20px; display: flex; gap: 15px; align-items: center; justify-content: center;
+        }
+        .audio-btn {
+            background: none; border: none; font-size: 2rem; cursor: pointer;
+            margin: 0; padding: 0; color: #555; transition: color 0.2s;
+        }
+        .audio-btn:hover { color: #000; }
+        
+        /* Стили навигации и кнопок */
+        .navigation {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; max-width: 500px; margin-top: 20px;
+        }
+        .nav-btn {
+            font-size: 1.2rem; padding: 10px 20px; border-radius: 8px; border: 2px solid #ccc;
+            background-color: var(--card-bg); cursor: pointer; transition: all 0.2s;
+        }
+        .nav-btn:hover { background-color: #e9e9e9; border-color: #aaa; }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #card-counter { font-size: 1.2rem; font-weight: bold; }
+        .actions {
+            margin-top: 30px; display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 500px;
+        }
+        .action-btn {
+            /* ИЗМЕНЕНО: Общие стили для всех кнопок */
+            font-size: 1rem;
+            padding: 12px 10px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-grow: 1; /* Делает кнопки одинаковой ширины */
+            flex-basis: 0;
+        }
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* ИЗМЕНЕНО: Новые стили для цветных кнопок */
+        .btn-yellow { background-color: #f1c40f; color: #333; }
+        .btn-yellow:hover { background-color: #f39c12; }
+        
+        .btn-orange { background-color: #e67e22; }
+        .btn-orange:hover { background-color: #d35400; }
+
+        .btn-green { background-color: #2ecc71; }
+        .btn-green:hover { background-color: #27ae60; }
+        
+        #completion-view p {
+            font-size: 1.2rem;
+            color: #555;
+        }
+        #restart-btn {
+            max-width: 250px;
+            margin-top: 20px;
+        }
+
+        .hidden { display: none !important; }
+        
+        @media (max-width: 600px) {
+            #verb-boxes-container { grid-template-columns: repeat(2, 1fr); }
+            .verb-box { font-size: 1.2rem; }
+            .card-back h3 { font-size: 1.5rem; }
+            .actions { flex-wrap: wrap; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Главное меню -->
+        <div id="main-menu">
+            <h1>Irregular Verbs Trainer</h1>
+            <div id="verb-boxes-container"></div>
+        </div>
+
+        <!-- Экран тренажера -->
+        <div id="trainer-view" class="hidden">
+            <h2 id="trainer-title"></h2>
+            <div id="card">
+                <div class="card-content" id="card-content"></div>
+            </div>
+            <div class="navigation">
+                <button id="prev-btn" class="nav-btn">&lt; Back</button>
+                <span id="card-counter"></span>
+                <button id="next-btn" class="nav-btn">Next &gt;</button>
+            </div>
+            <!-- ИЗМЕНЕНЫ КНОПКИ -->
+            <div class="actions">
+                <button id="shuffle-btn" class="action-btn btn-yellow">Shuffle 🔀</button>
+                <button id="menu-btn" class="action-btn btn-orange">Main Menu 🏠</button>
+                <button id="finish-btn" class="action-btn btn-green">Finish ✔️</button>
+            </div>
+        </div>
+
+        <!-- НОВЫЙ БЛОК: Экран завершения -->
+        <div id="completion-view" class="hidden">
+            <h2>Well done!</h2>
+            <p>Training Complete.</p>
+            <button id="restart-btn" class="action-btn btn-orange">Main Menu 🏠</button>
+        </div>
+    </div>
+
+    <script>
+        const verbGroups = [
+            {
+                title: "B - C",
+                verbs: [
+                    { v1: 'be', v2: 'was/were', v3: 'been', translation: 'быть, являться' },
+                    { v1: 'become', v2: 'became', v3: 'become', translation: 'становиться' },
+                    { v1: 'begin', v2: 'began', v3: 'begun', translation: 'начинать' },
+                    { v1: 'break', v2: 'broke', v3: 'broken', translation: 'ломать' },
+                    { v1: 'bring', v2: 'brought', v3: 'brought', translation: 'приносить' },
+                    { v1: 'build', v2: 'built', v3: 'built', translation: 'строить' },
+                    { v1: 'buy', v2: 'bought', v3: 'bought', translation: 'покупать' },
+                    { v1: 'catch', v2: 'caught', v3: 'caught', translation: 'ловить' },
+                    { v1: 'choose', v2: 'chose', v3: 'chosen', translation: 'выбирать' },
+                    { v1: 'come', v2: 'came', v3: 'come', translation: 'приходить' },
+                ]
+            },
+            {
+                title: "C - F",
+                verbs: [
+                    { v1: 'cost', v2: 'cost', v3: 'cost', translation: 'стоить' },
+                    { v1: 'cut', v2: 'cut', v3: 'cut', translation: 'резать' },
+                    { v1: 'do', v2: 'did', v3: 'done', translation: 'делать' },
+                    { v1: 'draw', v2: 'drew', v3: 'drawn', translation: 'рисовать' },
+                    { v1: 'drink', v2: 'drank', v3: 'drunk', translation: 'пить' },
+                    { v1: 'drive', v2: 'drove', v3: 'driven', translation: 'водить машину' },
+                    { v1: 'eat', v2: 'ate', v3: 'eaten', translation: 'есть' },
+                    { v1: 'fall', v2: 'fell', v3: 'fallen', translation: 'падать' },
+                    { v1: 'feel', v2: 'felt', v3: 'felt', translation: 'чувствовать' },
+                    { v1: 'find', v2: 'found', v3: 'found', translation: 'находить' },
+                ]
+            },
+            {
+                title: "F - K",
+                verbs: [
+                    { v1: 'fly', v2: 'flew', v3: 'flown', translation: 'летать' },
+                    { v1: 'forget', v2: 'forgot', v3: 'forgotten', translation: 'забывать' },
+                    { v1: 'get', v2: 'got', v3: 'got', translation: 'получать, доставать' },
+                    { v1: 'give', v2: 'gave', v3: 'given', translation: 'давать' },
+                    { v1: 'go', v2: 'went', v3: 'gone', translation: 'идти, ехать' },
+                    { v1: 'grow', v2: 'grew', v3: 'grown', translation: 'расти' },
+                    { v1: 'have', v2: 'had', v3: 'had', translation: 'иметь' },
+                    { v1: 'hear', v2: 'heard', v3: 'heard', translation: 'слышать' },
+                    { v1: 'hold', v2: 'held', v3: 'held', translation: 'держать' },
+                    { v1: 'keep', v2: 'kept', v3: 'kept', translation: 'хранить' },
+                ]
+            },
+            {
+                title: "K - P",
+                verbs: [
+                    { v1: 'know', v2: 'knew', v3: 'known', translation: 'знать' },
+                    { v1: 'learn', v2: 'learnt/learned', v3: 'learnt/learned', translation: 'учить' },
+                    { v1: 'leave', v2: 'left', v3: 'left', translation: 'покидать' },
+                    { v1: 'let', v2: 'let', v3: 'let', translation: 'позволять' },
+                    { v1: 'lose', v2: 'lost', v3: 'lost', translation: 'терять' },
+                    { v1: 'make', v2: 'made', v3: 'made', translation: 'делать, мастерить' },
+                    { v1: 'mean', v2: 'meant', v3: 'meant', translation: 'значить' },
+                    { v1: 'meet', v2: 'met', v3: 'met', translation: 'встречать' },
+                    { v1: 'pay', v2: 'paid', v3: 'paid', translation: 'платить' },
+                    { v1: 'put', v2: 'put', v3: 'put', translation: 'класть' },
+                ]
+            },
+            {
+                title: "R - S",
+                verbs: [
+                    { v1: 'read', v2: 'read', v3: 'read', translation: 'читать' },
+                    { v1: 'ride', v2: 'rode', v3: 'ridden', translation: 'ехать верхом' },
+                    { v1: 'run', v2: 'ran', v3: 'run', translation: 'бежать' },
+                    { v1: 'say', v2: 'said', v3: 'said', translation: 'сказать' },
+                    { v1: 'see', v2: 'saw', v3: 'seen', translation: 'видеть' },
+                    { v1: 'sell', v2: 'sold', v3: 'sold', translation: 'продавать' },
+                    { v1: 'send', v2: 'sent', v3: 'sent', translation: 'отправлять' },
+                    { v1: 'show', v2: 'showed', v3: 'shown', translation: 'показывать' },
+                    { v1: 'sing', v2: 'sang', v3: 'sung', translation: 'петь' },
+                    { v1: 'sit', v2: 'sat', v3: 'sat', translation: 'сидеть' },
+                ]
+            },
+            {
+                title: "S - W",
+                verbs: [
+                    { v1: 'sleep', v2: 'slept', v3: 'slept', translation: 'спать' },
+                    { v1: 'speak', v2: 'spoke', v3: 'spoken', translation: 'говорить' },
+                    { v1: 'spend', v2: 'spent', v3: 'spent', translation: 'тратить' },
+                    { v1: 'stand', v2: 'stood', v3: 'stood', translation: 'стоять' },
+                    { v1: 'swim', v2: 'swam', v3: 'swum', translation: 'плавать' },
+                    { v1: 'take', v2: 'took', v3: 'taken', translation: 'брать' },
+                    { v1: 'teach', v2: 'taught', v3: 'taught', translation: 'обучать' },
+                    { v1: 'tell', v2: 'told', v3: 'told', translation: 'рассказывать' },
+                    { v1: 'think', v2: 'thought', v3: 'thought', translation: 'думать' },
+                    { v1: 'write', v2: 'wrote', v3: 'written', translation: 'писать' },
+                ]
+            }
+        ];
+
+        let currentGroupIndex = 0;
+        let currentCardIndex = 0;
+        let currentGroupVerbs = [];
+        let isFlipped = false;
+
+        const mainMenu = document.getElementById('main-menu');
+        const trainerView = document.getElementById('trainer-view');
+        const completionView = document.getElementById('completion-view'); // НОВЫЙ ЭЛЕМЕНТ
+        const verbBoxesContainer = document.getElementById('verb-boxes-container');
+        const trainerTitle = document.getElementById('trainer-title');
+        const cardContent = document.getElementById('card-content');
+        const cardCounter = document.getElementById('card-counter');
+        const card = document.getElementById('card');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const finishBtn = document.getElementById('finish-btn'); // НОВЫЙ ЭЛЕМЕНТ
+        const restartBtn = document.getElementById('restart-btn'); // НОВЫЙ ЭЛЕМЕНТ
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Ваш браузер не поддерживает синтез речи.');
+            }
+        }
+        
+        function displayCard() {
+            isFlipped = false;
+            const verb = currentGroupVerbs[currentCardIndex];
+            cardContent.innerHTML = `<div class="card-front"><h2>${verb.v1}</h2><p>(${verb.translation})</p></div>`;
+            cardCounter.textContent = `${currentCardIndex + 1} / ${currentGroupVerbs.length}`;
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === currentGroupVerbs.length - 1;
+        }
+
+        function createAudioButtons(formString) {
+            return formString.split('/')
+                .map(word => `<button class="audio-btn" data-word="${word.trim()}">🔊</button>`)
+                .join('');
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const verb = currentGroupVerbs[currentCardIndex];
+            if (isFlipped) {
+                const v1_buttons = createAudioButtons(verb.v1);
+                const v2_buttons = createAudioButtons(verb.v2);
+                const v3_buttons = createAudioButtons(verb.v3);
+                cardContent.innerHTML = `<div class="card-back"><h3>${verb.v1} - ${verb.v2} - ${verb.v3}</h3><div class="audio-buttons"><span>${v1_buttons}</span><span>${v2_buttons}</span><span>${v3_buttons}</span></div></div>`;
+            } else {
+                displayCard();
+            }
+        }
+
+        function loadGroup(groupId) {
+            currentGroupIndex = groupId;
+            currentGroupVerbs = [...verbGroups[groupId].verbs];
+            currentCardIndex = 0;
+            trainerTitle.textContent = `Группа: ${verbGroups[groupId].title}`;
+            displayCard();
+            mainMenu.classList.add('hidden');
+            completionView.classList.add('hidden');
+            trainerView.classList.remove('hidden');
+        }
+
+        function shuffleCards() {
+            for (let i = currentGroupVerbs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentGroupVerbs[i], currentGroupVerbs[j]] = [currentGroupVerbs[j], currentGroupVerbs[i]];
+            }
+            currentCardIndex = 0;
+            displayCard();
+        }
+
+        function initMenu() {
+            verbBoxesContainer.innerHTML = '';
+            verbGroups.forEach((group, index) => {
+                const box = document.createElement('div');
+                box.className = `verb-box box-color-${index % 6}`;
+                box.textContent = group.title;
+                box.dataset.groupId = index;
+                verbBoxesContainer.appendChild(box);
+            });
+            mainMenu.classList.remove('hidden');
+            trainerView.classList.add('hidden');
+            completionView.classList.add('hidden'); // Убедимся, что экран завершения тоже скрыт
+        }
+
+        verbBoxesContainer.addEventListener('click', (e) => {
+            const box = e.target.closest('.verb-box');
+            if (box) {
+                loadGroup(parseInt(box.dataset.groupId, 10));
+            }
+        });
+
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.audio-btn')) return;
+            flipCard();
+        });
+        
+        cardContent.addEventListener('click', (e) => {
+            const btn = e.target.closest('.audio-btn');
+            if (btn) {
+                e.stopPropagation();
+                speak(btn.dataset.word);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentCardIndex < currentGroupVerbs.length - 1) {
+                currentCardIndex++;
+                displayCard();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                displayCard();
+            }
+        });
+
+        shuffleBtn.addEventListener('click', shuffleCards);
+        menuBtn.addEventListener('click', initMenu);
+        
+        // НОВЫЕ ОБРАБОТЧИКИ
+        finishBtn.addEventListener('click', () => {
+            trainerView.classList.add('hidden');
+            completionView.classList.remove('hidden');
+        });
+        
+        restartBtn.addEventListener('click', initMenu);
+
+        initMenu();
+    </script>
+</body>
+</html>
