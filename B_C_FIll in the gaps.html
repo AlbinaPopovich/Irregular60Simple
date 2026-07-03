@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Past Simple — B/C Verbs</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f0f4ff;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #3a3a6e;
+  font-size: 1.6em;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #777;
+  font-size: 0.95em;
+  margin-bottom: 20px;
+}
+
+.level-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.level-btn {
+  padding: 10px 28px;
+  border: 2px solid #6c63ff;
+  border-radius: 25px;
+  background: white;
+  color: #6c63ff;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.level-btn.active {
+  background: #6c63ff;
+  color: white;
+}
+
+.level-label {
+  text-align: center;
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.score-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.score-text { font-size: 1em; color: #555; }
+.score-num { font-size: 1.3em; font-weight: bold; color: #6c63ff; }
+
+.cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  border-left: 5px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.card.correct { border-left-color: #4caf50; background: #f6fff6; }
+.card.wrong   { border-left-color: #f44336; background: #fff6f6; }
+
+.verb-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.verb-num {
+  background: #6c63ff;
+  color: white;
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85em; font-weight: bold; flex-shrink: 0;
+}
+
+.verb-base { font-size: 1.15em; font-weight: bold; color: #3a3a6e; }
+.verb-translation { font-size: 0.9em; color: #aaa; margin-left: auto; }
+
+.sentence {
+  font-size: 1em;
+  color: #444;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+/* INPUT */
+.answer-input {
+  display: block;
+  width: 100%;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 1em;
+  outline: none;
+  background: white;
+  color: #333;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.answer-input:focus { border-color: #6c63ff; }
+.answer-input.correct-input { border-color: #4caf50; background: #f0fff0; }
+.answer-input.wrong-input   { border-color: #f44336; background: #fff0f0; }
+
+/* OPTIONS */
+.options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.opt-btn {
+  padding: 9px 20px;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  background: white;
+  font-size: 1em;
+  cursor: pointer;
+  color: #444;
+  transition: all 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.opt-btn:hover   { border-color: #6c63ff; color: #6c63ff; }
+.opt-btn.selected { border-color: #6c63ff; background: #ede9ff; color: #6c63ff; font-weight: bold; }
+.opt-btn.correct-opt { border-color: #4caf50; background: #4caf50; color: white; }
+.opt-btn.wrong-opt   { border-color: #f44336; background: #f44336; color: white; }
+.opt-btn.show-correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; font-weight: bold; }
+.opt-btn:disabled { cursor: default; }
+
+/* FEEDBACK */
+.feedback {
+  margin-top: 10px;
+  font-size: 0.92em;
+  font-weight: bold;
+  min-height: 18px;
+}
+.feedback.ok { color: #4caf50; }
+.feedback.no { color: #f44336; }
+
+/* CHECK */
+.check-area {
+  text-align: center;
+  margin-top: 28px;
+}
+
+.check-btn {
+  background: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 13px 44px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(108,99,255,0.3);
+  transition: background 0.2s;
+}
+
+.check-btn:hover    { background: #574fd6; }
+.check-btn:disabled { background: #bbb; box-shadow: none; cursor: default; }
+
+/* RESULT */
+.result-box {
+  display: none;
+  background: white;
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  margin-top: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.result-emoji { font-size: 3em; margin-bottom: 10px; }
+.result-title { font-size: 1.4em; font-weight: bold; color: #3a3a6e; margin-bottom: 6px; }
+.result-score { font-size: 1.05em; color: #666; margin-bottom: 20px; }
+
+.result-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+.r-btn {
+  padding: 10px 24px;
+  border-radius: 22px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid #6c63ff;
+}
+
+.r-btn.outline { background: white; color: #6c63ff; }
+.r-btn.outline:hover { background: #6c63ff; color: white; }
+.r-btn.filled  { background: #6c63ff; color: white; }
+.r-btn.filled:hover  { background: #574fd6; }
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.25em; }
+  .opt-btn { padding: 8px 15px; font-size: 0.95em; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>⚡ Past Simple</h1>
+  <p class="subtitle">Irregular verbs: B &amp; C</p>
+
+  <div class="level-switcher">
+    <button class="level-btn active" id="lvlBtn1" onclick="setLevel(1)">Level 1</button>
+    <button class="level-btn"        id="lvlBtn2" onclick="setLevel(2)">Level 2</button>
+  </div>
+  <p class="level-label" id="levelLabel">🟣 Level 1 — выбери правильный ответ</p>
+
+  <div class="score-bar">
+    <span class="score-text">Правильно:</span>
+    <span class="score-num" id="scoreDisplay">— / —</span>
+  </div>
+
+  <div class="cards-wrapper" id="cardsWrapper"></div>
+
+  <div class="check-area">
+    <button class="check-btn" id="checkBtn" onclick="checkAll()">Проверить ✓</button>
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-emoji" id="resultEmoji"></div>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-btns">
+      <button class="r-btn outline" onclick="retryWrong()">🔄 Повторить ошибки</button>
+      <button class="r-btn filled"  onclick="newSet()">🔀 Новый набор</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────
+const ALL_VERBS = [
+  {
+    base: "be", v2: "was / were", translation: "быть",
+    items: [
+      { sentence: "Yesterday I ___ at home.",        answer: "was"  },
+      { sentence: "They ___ tired after school.",    answer: "were" },
+      { sentence: "She ___ happy yesterday.",        answer: "was"  },
+      { sentence: "We ___ late for the lesson.",     answer: "were" }
+    ]
+  },
+  {
+    base: "become", v2: "became", translation: "становиться",
+    items: [
+      { sentence: "She ___ a doctor.",        answer: "became" },
+      { sentence: "The weather ___ cold.",    answer: "became" },
+      { sentence: "He ___ very famous.",      answer: "became" }
+    ]
+  },
+  {
+    base: "begin", v2: "began", translation: "начинать",
+    items: [
+      { sentence: "The lesson ___ at 8 o'clock.", answer: "began" },
+      { sentence: "It ___ to rain.",              answer: "began" },
+      { sentence: "She ___ to read the book.",    answer: "began" }
+    ]
+  },
+  {
+    base: "break", v2: "broke", translation: "ломать",
+    items: [
+      { sentence: "He ___ the window.",   answer: "broke" },
+      { sentence: "She ___ her phone.",   answer: "broke" },
+      { sentence: "I ___ my pencil.",     answer: "broke" }
+    ]
+  },
+  {
+    base: "bring", v2: "brought", translation: "приносить",
+    items: [
+      { sentence: "Mum ___ flowers.",              answer: "brought" },
+      { sentence: "He ___ his dog to school.",     answer: "brought" },
+      { sentence: "She ___ lunch for everyone.",   answer: "brought" }
+    ]
+  },
+  {
+    base: "build", v2: "built", translation: "строить",
+    items: [
+      { sentence: "They ___ a new house.",  answer: "built" },
+      { sentence: "He ___ a sandcastle.",   answer: "built" },
+      { sentence: "We ___ a snowman.",      answer: "built" }
+    ]
+  },
+  {
+    base: "buy", v2: "bought", translation: "покупать",
+    items: [
+      { sentence: "Mum ___ new shoes.",          answer: "bought" },
+      { sentence: "I ___ a sandwich.",           answer: "bought" },
+      { sentence: "He ___ a present for her.",   answer: "bought" }
+    ]
+  },
+  {
+    base: "catch", v2: "caught", translation: "ловить",
+    items: [
+      { sentence: "She ___ the ball.",      answer: "caught" },
+      { sentence: "The cat ___ a mouse.",   answer: "caught" },
+      { sentence: "He ___ a cold.",         answer: "caught" }
+    ]
+  },
+  {
+    base: "choose", v2: "chose", translation: "выбирать",
+    items: [
+      { sentence: "She ___ a red dress.",      answer: "chose" },
+      { sentence: "He ___ the biggest cake.",  answer: "chose" },
+      { sentence: "I ___ this book.",          answer: "chose" }
+    ]
+  },
+  {
+    base: "come", v2: "came", translation: "приходить",
+    items: [
+      { sentence: "Dad ___ home late.",      answer: "came" },
+      { sentence: "She ___ to my party.",    answer: "came" },
+      { sentence: "They ___ by bus.",        answer: "came" }
+    ]
+  }
+];
+
+// ─── STATE ─────────────────────────────────────────────────
+let level       = 1;
+let currentSet  = [];   // [{verb, item}]
+let selections  = {};   // idx -> chosen string (level 1)
+let isChecked   = false;
+
+// ─── HELPERS ───────────────────────────────────────────────
+function pickRandom(arr, n) {
+  const copy = [...arr].sort(() => Math.random() - 0.5);
+  return copy.slice(0, n);
+}
+
+function buildSet() {
+  const count = Math.random() < 0.5 ? 7 : 8;
+  const verbs = pickRandom(ALL_VERBS, count);
+  return verbs.map(verb => {
+    const item = verb.items[Math.floor(Math.random() * verb.items.length)];
+    return { verb, item };
+  });
+}
+
+function getDistractors(correctAnswer, count) {
+  const pool = ALL_VERBS
+    .map(v => v.v2.split(' / ')[0])          // first form only
+    .filter(v => v !== correctAnswer.trim());
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+function buildOptions(correctAnswer) {
+  const distractors = getDistractors(correctAnswer, 2);
+  const opts = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+  return opts;
+}
+
+// ─── RENDER ────────────────────────────────────────────────
+function render() {
+  isChecked  = false;
+  selections = {};
+
+  document.getElementById('resultBox').style.display = 'none';
+  document.getElementById('checkBtn').disabled = false;
+  document.getElementById('scoreDisplay').textContent = '— / —';
+
+  const wrapper = document.getElementById('cardsWrapper');
+  wrapper.innerHTML = '';
+
+  currentSet.forEach(({ verb, item }, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'card-' + idx;
+
+    // header
+    card.innerHTML = `
+      <div class="verb-info">
+        <div class="verb-num">${idx + 1}</div>
+        <div class="verb-base">${verb.base}</div>
+        <div class="verb-translation">${verb.translation}</div>
+      </div>
+      <div class="sentence">${item.sentence.replace('___', '<strong>___</strong>')}</div>
+    `;
+
+    // interactive area
+    if (level === 1) {
+      // options
+      const opts = buildOptions(item.answer);
+      const optDiv = document.createElement('div');
+      optDiv.className = 'options';
+      optDiv.id = 'opts-' + idx;
+
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = opt;
+        btn.type = 'button';
+
+        btn.addEventListener('click', function() {
+          if (isChecked) return;
+          // deselect others
+          document.querySelectorAll('#opts-' + idx + ' .opt-btn')
+            .forEach(b => b.classList.remove('selected'));
+          this.classList.add('selected');
+          selections[idx] = opt;
+        });
+
+        optDiv.appendChild(btn);
+      });
+
+      card.appendChild(optDiv);
+
+    } else {
+      // text input
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'answer-input';
+      inp.id = 'inp-' + idx;
+      inp.placeholder = 'Past Simple...';
+      inp.autocomplete  = 'off';
+      inp.autocorrect   = 'off';
+      inp.autocapitalize = 'off';
+      inp.spellcheck    = false;
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAll(); });
+      card.appendChild(inp);
+    }
+
+    // feedback placeholder
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    fb.id = 'fb-' + idx;
+    card.appendChild(fb);
+
+    wrapper.appendChild(card);
+  });
+}
+
+// ─── CHECK ─────────────────────────────────────────────────
+function checkAll() {
+  if (isChecked) return;
+  isChecked = true;
+
+  let score = 0;
+
+  currentSet.forEach(({ verb, item }, idx) => {
+    const card = document.getElementById('card-' + idx);
+    const fb   = document.getElementById('fb-'   + idx);
+    const correct = item.answer.toLowerCase().trim();
+
+    let userAnswer = '';
+
+    if (level === 1) {
+      userAnswer = (selections[idx] || '').toLowerCase().trim();
+
+      const btns = document.querySelectorAll('#opts-' + idx + ' .opt-btn');
+      btns.forEach(b => {
+        b.disabled = true;
+        b.classList.remove('selected');
+        const val = b.textContent.toLowerCase().trim();
+        if (val === correct) {
+          b.classList.add(userAnswer === correct ? 'correct-opt' : 'show-correct');
+        } else if (val === userAnswer && userAnswer !== correct) {
+          b.classList.add('wrong-opt');
+        }
+      });
+
+    } else {
+      const inp = document.getElementById('inp-' + idx);
+      userAnswer = inp.value.toLowerCase().trim();
+      inp.disabled = true;
+      inp.classList.add(userAnswer === correct ? 'correct-input' : 'wrong-input');
+    }
+
+    if (userAnswer === correct) {
+      score++;
+      card.classList.add('correct');
+      fb.textContent = '✅ Правильно!';
+      fb.className   = 'feedback ok';
+    } else {
+      card.classList.add('wrong');
+      fb.innerHTML = `❌ Правильно: <strong>${item.answer}</strong>`;
+      fb.className = 'feedback no';
+    }
+  });
+
+  document.getElementById('scoreDisplay').textContent = `${score} / ${currentSet.length}`;
+  document.getElementById('checkBtn').disabled = true;
+  showResult(score);
+}
+
+// ─── RESULT ────────────────────────────────────────────────
+function showResult(score) {
+  const total = currentSet.length;
+  const pct   = score / total;
+  let emoji, title;
+
+  if (pct === 1)       { emoji = '🏆'; title = 'Отлично! Все правильно!'; }
+  else if (pct >= 0.7) { emoji = '👍'; title = 'Хорошо! Почти всё!'; }
+  else if (pct >= 0.5) { emoji = '💪'; title = 'Неплохо, есть ошибки'; }
+  else                 { emoji = '📚'; title = 'Нужно повторить!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultScore').textContent = `${score} из ${total} правильно`;
+  const box = document.getElementById('resultBox');
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─── RETRY WRONG ───────────────────────────────────────────
+function retryWrong() {
+  const wrongSet = currentSet.filter((_, idx) => {
+    const card = document.getElementById('card-' + idx);
+    return card.classList.contains('wrong');
+  });
+  currentSet = wrongSet.length > 0 ? wrongSet : buildSet();
+  render();
+}
+
+// ─── NEW SET ───────────────────────────────────────────────
+function newSet() {
+  currentSet = buildSet();
+  render();
+}
+
+// ─── SET LEVEL ─────────────────────────────────────────────
+function setLevel(n) {
+  level = n;
+  document.getElementById('lvlBtn1').classList.toggle('active', n === 1);
+  document.getElementById('lvlBtn2').classList.toggle('active', n === 2);
+  document.getElementById('levelLabel').textContent = n === 1
+    ? '🟣 Level 1 — выбери правильный ответ'
+    : '🟠 Level 2 — напиши форму сам(а)';
+  newSet();
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+currentSet = buildSet();
+render();
+</script>
+</body>
+</html>
