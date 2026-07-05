@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Grammar Times — Find the Mistake!</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f5f0e8;
+    --ink:#1e1b18;
+    --muted:#6b645d;
+    --accent:#b22222; /* газетный бордовый */
+    --pencil:#e63946; /* красный карандаш */
+    --good:#2e7d32;  /* зелёный для правки */
+    --stamp:#274c77; /* синий штамп */
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+
+  body{
+    margin:0;
+    background:#cdbfae;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    color:var(--ink);
+    font-family:'IM Fell English', serif;
+  }
+
+  .newspaper{
+    width:100%;
+    max-width:860px;
+    background:var(--paper);
+    position:relative;
+    padding:28px 26px 34px;
+    border:1px solid #d8cebf;
+    box-shadow:
+      0 2px 0 #d8cebf,
+      0 6px 18px rgba(0,0,0,.25),
+      inset 0 0 90px rgba(0,0,0,.03);
+    /* «мятая» бумага */
+    background-image:
+      radial-gradient(100% 100% at 20% 15%, rgba(255,255,255,.35) 0%, rgba(0,0,0,0) 60%),
+      radial-gradient(80% 80% at 75% 80%, rgba(0,0,0,.08) 0%, rgba(0,0,0,0) 60%),
+      repeating-linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.04) 1px, transparent 1px, transparent 26px);
+    border-radius:4px;
+  }
+
+  .masthead{
+    text-align:center;
+    padding:10px 8px 14px;
+    border-top:3px double #26221d;
+    border-bottom:3px double #26221d;
+    margin-bottom:10px;
+  }
+  .masthead h1{
+    font-family:'Playfair Display', serif;
+    font-weight:900;
+    letter-spacing:.5px;
+    font-size:clamp(28px, 5vw, 44px);
+    line-height:1.05;
+    margin:6px 0 2px;
+    text-transform:uppercase;
+  }
+  .mast-sub{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:.3px;
+    margin-top:6px;
+  }
+
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin:16px 0 8px;
+  }
+  .badge{
+    font-family:'Playfair Display', serif;
+    border:1px solid #3a332b;
+    padding:6px 10px;
+    font-size:14px;
+    background:#faf7f1;
+    box-shadow:inset 0 0 0 2px #f0e9dc;
+  }
+
+  .headline{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:clamp(18px, 2.4vw, 22px);
+    text-align:center;
+    padding:10px 8px;
+    border:2px solid #26221d; /* рамка заголовка */
+    margin:8px 0 16px;
+    background:#fffdf8;
+  }
+
+  .article{
+    border-top:1px solid #b7ac9c;
+    border-bottom:1px solid #b7ac9c;
+    background:#fffdf8;
+    padding:18px 14px;
+    min-height:140px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .sentence{
+    font-size:clamp(20px, 2.6vw, 26px);
+    line-height:1.5;
+    text-align:center;
+    user-select:none;
+  }
+
+  .w{
+    display:inline-block;
+    padding:2px 4px;
+    margin:2px 2px;
+    cursor:pointer;
+    position:relative;
+    transition:transform .08s ease;
+    border-radius:6px;
+  }
+  .w:focus{outline:2px dashed #999; outline-offset:2px}
+
+  /* Неверный клик — покачивание */
+  @keyframes wiggle {
+    0% { transform:translateX(0) }
+    20% { transform:translateX(-3px) rotate(-1deg) }
+    40% { transform:translateX(3px) rotate(1deg) }
+    60% { transform:translateX(-2px) rotate(-1deg) }
+    80% { transform:translateX(2px) rotate(1deg) }
+    100% { transform:translateX(0) }
+  }
+  .wiggle{ animation:wiggle .3s ease }
+
+  /* Красный карандаш — «живая» обводка */
+  .pencil-ring{
+    border:3px solid var(--pencil);
+    border-radius:10px/40%;
+    box-shadow: 0 0 0 1px rgba(230,57,70,.3), 0 0 0 4px rgba(230,57,70,.06);
+    animation:scribble .6s ease-in-out 2;
+  }
+  @keyframes scribble{
+    0%{ transform:rotate(-.7deg) }
+    35%{ transform:rotate(.6deg) }
+    70%{ transform:rotate(-.4deg) }
+    100%{ transform:rotate(0) }
+  }
+
+  /* Редакторская правка: зачёркнутое + зелёная правка */
+  .w .wrong{
+    text-decoration:line-through 2px var(--pencil);
+    color:#7a1919;
+    margin-right:6px;
+  }
+  .w .fix{
+    color:var(--good);
+    font-weight:700;
+  }
+
+  .rule{
+    margin:14px auto 0;
+    max-width:680px;
+    background:#fff9f0;
+    border:1px solid #c9b8a0;
+    box-shadow:inset 0 0 0 2px #fff3e2;
+    padding:10px 12px;
+    font-size:16px;
+  }
+  .rule b{ color:#5d3b09 }
+  .rule small{ color:#6f6a63 }
+
+  .toolbar{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin:16px 0 0;
+  }
+  .btn{
+    font-family:'Playfair Display', serif;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:10px 16px;
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    background:#f2f7ff;
+    box-shadow:2px 2px 0 #b7c7df, inset 0 0 0 3px #e8effa;
+    cursor:pointer;
+    transition:transform .06s ease, box-shadow .06s ease, opacity .2s ease;
+    border-radius:4px;
+  }
+  .btn:active{ transform:translateY(1px); box-shadow:1px 1px 0 #b7c7df, inset 0 0 0 3px #e8effa }
+  .btn[disabled]{
+    opacity:.55;
+    cursor:not-allowed;
+  }
+
+  .hint{
+    text-align:center;
+    margin-top:8px;
+    min-height:22px;
+    color:#8b0000;
+    font-style:italic;
+  }
+
+  /* Итоговый экран — первая полоса */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    z-index:10;
+  }
+  .frontpage{
+    width:min(760px, 96vw);
+    background:var(--paper);
+    border:1px solid #d8cebf;
+    box-shadow:0 10px 26px rgba(0,0,0,.35);
+    padding:20px 22px 26px;
+    background-image:
+      repeating-linear-gradient(180deg, rgba(0,0,0,.035), rgba(0,0,0,.035) 1px, transparent 1px, transparent 28px);
+  }
+  .breaking{
+    font-family:'Playfair Display', serif;
+    text-transform:uppercase;
+    font-weight:900;
+    text-align:center;
+    font-size:clamp(26px, 6vw, 42px);
+    padding:8px;
+    border:3px double #26221d;
+    margin-bottom:10px;
+  }
+  .scoreline{
+    text-align:center;
+    font-size:clamp(18px, 3vw, 22px);
+    margin-bottom:14px;
+  }
+  .front-actions{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:8px;
+  }
+
+  /* Небольшая адаптация */
+  @media (max-width:520px){
+    .mast-sub{ display:none }
+    .sentence{ line-height:1.45 }
+  }
+</style>
+</head>
+<body>
+  <main class="newspaper" aria-live="polite">
+    <header class="masthead" aria-label="Newspaper header">
+      <div class="mast-sub">
+        <span>English • Grade 4 (A2)</span>
+        <span>Past Simple — irregular verbs</span>
+        <span>No. 6 Tasks</span>
+      </div>
+      <h1>The Grammar Times</h1>
+      <div class="mast-sub">
+        <span>Special Edition</span>
+        <span>Junior Desk</span>
+        <span>Daily</span>
+      </div>
+    </header>
+
+    <div class="topbar">
+      <div class="badge">Mistake <span id="cur">1</span> of <span id="tot">6</span></div>
+      <div class="badge">Score: <span id="score">0</span></div>
+    </div>
+
+    <div class="headline">Find the grammar mistake in Past Simple and click it!</div>
+
+    <section class="article">
+      <div id="sentence" class="sentence" aria-label="Sentence area"></div>
+    </section>
+
+    <div id="hint" class="hint"></div>
+    <div id="rule" class="rule" hidden></div>
+
+    <div class="toolbar">
+      <button id="nextBtn" class="btn" disabled>Next ▶</button>
+    </div>
+  </main>
+
+  <!-- Итоговый экран -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="brk">
+    <div class="frontpage">
+      <div id="brk" class="breaking">BREAKING NEWS</div>
+      <div id="finalText" class="scoreline">You scored 0 out of 6!</div>
+      <div class="front-actions">
+        <button id="againBtn" class="btn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // Данные заданий: одно предложение, один неверный глагол, его исправление и правило
+  const tasks = [
+    {
+      words: ["Yesterday","I","goed","to","school."],
+      errorIndex: 2,
+      correct: "went",
+      rule: "The verb go is irregular in Past Simple: go → went."
+    },
+    {
+      words: ["She","buyed","a","new","bag","last","weekend."],
+      errorIndex: 1,
+      correct: "bought",
+      rule: "Buy is irregular in Past Simple: buy → bought."
+    },
+    {
+      words: ["We","eated","pizza","last","night."],
+      errorIndex: 1,
+      correct: "ate",
+      rule: "Eat is irregular in Past Simple: eat → ate."
+    },
+    {
+      words: ["He","didn't","saw","the","movie","yesterday."],
+      errorIndex: 2,
+      correct: "see",
+      rule: "After did/didn't we use the base form: didn't + see."
+    },
+    {
+      words: ["They","taked","the","bus","to","school","in","the","morning."],
+      errorIndex: 1,
+      correct: "took",
+      rule: "Take is irregular in Past Simple: take → took."
+    },
+    {
+      words: ["My","mom","gived","me","a","book","for","my","birthday."],
+      errorIndex: 2,
+      correct: "gave",
+      rule: "Give is irregular in Past Simple: give → gave."
+    }
+  ];
+
+  // Состояние
+  let index = 0;
+  let score = 0;
+  let found = false;
+
+  // Элементы
+  const $sentence = document.getElementById('sentence');
+  const $rule = document.getElementById('rule');
+  const $hint = document.getElementById('hint');
+  const $next = document.getElementById('nextBtn');
+  const $cur = document.getElementById('cur');
+  const $tot = document.getElementById('tot');
+  const $score = document.getElementById('score');
+  const $overlay = document.getElementById('overlay');
+  const $finalText = document.getElementById('finalText');
+  const $again = document.getElementById('againBtn');
+
+  $tot.textContent = tasks.length;
+
+  function renderTask(){
+    found = false;
+    $next.disabled = true;
+    $hint.textContent = '';
+    $rule.hidden = true;
+    $rule.innerHTML = '';
+
+    const t = tasks[index];
+    $cur.textContent = index + 1;
+
+    const frag = document.createDocumentFragment();
+    t.words.forEach((w,i)=>{
+      const span = document.createElement('span');
+      span.className = 'w';
+      span.tabIndex = 0;
+      span.dataset.i = i;
+      span.textContent = w;
+      frag.appendChild(span);
+      if (i < t.words.length-1) {
+        const space = document.createTextNode(' ');
+        frag.appendChild(space);
+      }
+    });
+    $sentence.innerHTML = '';
+    $sentence.appendChild(frag);
+  }
+
+  function showRule(wrong, correct, rule){
+    $rule.hidden = false;
+    $rule.innerHTML = `
+      <div><b>Correction:</b> <span class="fix" style="color:var(--good); font-weight:700">${correct}</span> (instead of <span style="text-decoration:line-through 2px var(--pencil); color:#7a1919">${wrong}</span>)</div>
+      <div style="margin-top:6px"><b>Rule:</b> <small>${rule}</small></div>
+    `;
+  }
+
+  function handleWordClick(e){
+    const target = e.target.closest('.w');
+    if (!target) return;
+    if (found) {
+      // После нахождения ошибки остальные клики игнорируем
+      return;
+    }
+    const t = tasks[index];
+    const i = Number(target.dataset.i);
+
+    if (i === t.errorIndex) {
+      found = true;
+      // Красный «карандашный» контур + редакторская правка
+      const wrong = target.textContent;
+      target.classList.add('pencil-ring');
+      target.innerHTML = `<span class="wrong">${wrong}</span><span class="fix"> ${t.correct}</span>`;
+      showRule(wrong, t.correct, t.rule);
+      $hint.textContent = '';
+      // Счёт
+      score += 1;
+      $score.textContent = score;
+      // Кнопка дальше
+      $next.disabled = false;
+      // Снимаем фокус со слова, переносим на кнопку Next
+      setTimeout(()=> $next.focus(), 120);
+    } else {
+      // Неверный клик — шейк + подсказка
+      target.classList.remove('wiggle');
+      void target.offsetWidth; // перезапуск анимации
+      target.classList.add('wiggle');
+      $hint.textContent = "Not here! Keep looking.";
+    }
+  }
+
+  function nextTask(){
+    if (!found) return;
+    if (index < tasks.length - 1){
+      index += 1;
+      renderTask();
+    } else {
+      // Итоговый экран
+      $finalText.textContent = `You scored ${score} out of ${tasks.length}!`;
+      $overlay.style.display = 'flex';
+    }
+  }
+
+  function restart(){
+    index = 0;
+    score = 0;
+    $score.textContent = score;
+    $overlay.style.display = 'none';
+    renderTask();
+  }
+
+  // Навешиваем события
+  $sentence.addEventListener('click', handleWordClick);
+  $sentence.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleWordClick(e);
+      e.preventDefault();
+    }
+  });
+  $next.addEventListener('click', nextTask);
+  $again.addEventListener('click', restart);
+
+  // Старт
+  renderTask();
+})();
+</script>
+</body>
+</html>

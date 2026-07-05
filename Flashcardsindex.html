@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Irregular Verbs — Flash Cards</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e8f5e9 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    color: #1a5276;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #5d8a9e;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 18px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #2e7d5e;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: #c8e6c9;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2e7d5e, #1a73a7);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── CARD SCENE ── */
+  .scene {
+    width: 100%;
+    max-width: 420px;
+    height: 240px;
+    perspective: 900px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+    border-radius: 20px;
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    box-shadow: 0 8px 32px rgba(26,82,118,0.13), 0 2px 8px rgba(0,0,0,0.07);
+  }
+
+  .card-front {
+    background: #ffffff;
+    border: 2.5px solid #b3d9f5;
+  }
+
+  .card-back {
+    background: linear-gradient(135deg, #e8f5e9 0%, #dff0fb 100%);
+    border: 2.5px solid #81c784;
+    transform: rotateY(180deg);
+  }
+
+  .card-hint {
+    font-size: 0.72rem;
+    color: #90b8c8;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  .card-emoji {
+    font-size: 2.6rem;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+
+  .card-word {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a5276;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .card-past {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1e8449;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .card-example {
+    font-size: 0.93rem;
+    color: #2c6e49;
+    font-style: italic;
+    text-align: center;
+    line-height: 1.5;
+    background: rgba(255,255,255,0.6);
+    border-radius: 10px;
+    padding: 8px 14px;
+  }
+
+  .tap-hint {
+    font-size: 0.75rem;
+    color: #a0bfcc;
+    margin-top: 10px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px 10px;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-know {
+    background: linear-gradient(135deg, #27ae60, #1e8449);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(39,174,96,0.28);
+  }
+
+  .btn-repeat {
+    background: linear-gradient(135deg, #1a73a7, #154360);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(26,115,167,0.25);
+  }
+
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* ── COUNTER CHIPS ── */
+  .chips {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .chip {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 5px 13px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  .chip-left  { background: #dff0fb; color: #1a5276; }
+  .chip-know  { background: #d5f5e3; color: #1e8449; }
+
+  /* ── FINISH SCREEN ── */
+  .finish {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: #fff;
+    border-radius: 24px;
+    padding: 36px 28px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(26,82,118,0.13);
+    animation: popIn 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .finish-emoji { font-size: 3.5rem; margin-bottom: 14px; }
+
+  .finish h2 {
+    font-size: 1.5rem;
+    color: #1a5276;
+    margin-bottom: 8px;
+  }
+
+  .finish p {
+    font-size: 0.95rem;
+    color: #5d8a9e;
+    margin-bottom: 22px;
+    line-height: 1.6;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 26px;
+  }
+
+  .summary-card {
+    background: #f0f7ff;
+    border-radius: 14px;
+    padding: 14px 10px;
+  }
+
+  .summary-card .s-num {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1a73a7;
+  }
+
+  .summary-card .s-label {
+    font-size: 0.75rem;
+    color: #5d8a9e;
+    margin-top: 2px;
+  }
+
+  .summary-card.green { background: #e8f8f0; }
+  .summary-card.green .s-num { color: #1e8449; }
+
+  .btn-restart {
+    background: linear-gradient(135deg, #1a73a7, #154360);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(26,115,167,0.25);
+    transition: transform 0.12s;
+  }
+
+  .btn-restart:active { transform: scale(0.96); }
+
+  /* ── STACK SHADOW HINT ── */
+  .scene::before,
+  .scene::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    background: #fff;
+    border: 2px solid #cce3f5;
+    z-index: 0;
+  }
+
+  .scene::before {
+    width: calc(100% - 20px);
+    height: 100%;
+    top: 10px;
+    opacity: 0.6;
+  }
+
+  .scene::after {
+    width: calc(100% - 36px);
+    height: 100%;
+    top: 18px;
+    opacity: 0.35;
+  }
+
+  .card { z-index: 1; }
+
+  @media (max-width: 400px) {
+    .card-word  { font-size: 1.6rem; }
+    .card-past  { font-size: 1.5rem; }
+    .scene      { height: 210px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🇬🇧 Irregular Verbs</h1>
+<p class="subtitle">Past Simple · 5th grade · Tap the card to flip</p>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span id="prog-text">Card 1 of 10</span>
+    <span id="prog-pct">0%</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- CARD -->
+<div class="scene" id="scene" onclick="flipCard()">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="card-hint">infinitive</div>
+      <div class="card-emoji" id="front-emoji"></div>
+      <div class="card-word"  id="front-word"></div>
+      <div class="tap-hint">tap to see Past Simple →</div>
+    </div>
+    <div class="card-face card-back">
+      <div class="card-hint">past simple</div>
+      <div class="card-past"    id="back-past"></div>
+      <div class="card-example" id="back-example"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUTTONS -->
+<div class="btn-row" id="btn-row">
+  <button class="btn btn-repeat" id="btn-repeat" onclick="repeat()" disabled>🔄 Повторить</button>
+  <button class="btn btn-know"   id="btn-know"   onclick="know()"   disabled>✅ Знаю</button>
+</div>
+
+<div class="chips">
+  <span class="chip chip-left" id="chip-left">📚 Left: 10</span>
+  <span class="chip chip-know" id="chip-know">⭐ Known: 0</span>
+</div>
+
+<!-- FINISH -->
+<div class="finish" id="finish">
+  <div class="finish-emoji">🎉</div>
+  <h2>All done!</h2>
+  <p>You've studied all 10 irregular verbs.<br>Great job! Keep practising every day.</p>
+  <div class="summary-grid">
+    <div class="summary-card green">
+      <div class="s-num" id="sum-know">0</div>
+      <div class="s-label">Marked "Know"</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-num" id="sum-rep">0</div>
+      <div class="s-label">Times repeated</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-num" id="sum-total">10</div>
+      <div class="s-label">Total verbs</div>
+    </div>
+    <div class="summary-card green">
+      <div class="s-num" id="sum-pct">0%</div>
+      <div class="s-label">Mastery</div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart()">🔁 Start again</button>
+</div>
+
+<script>
+  const ALL_CARDS = [
+    { emoji:'🚶', word:'go',   past:'went',  example:'We went to the forest.' },
+    { emoji:'👜', word:'have', past:'had',   example:'We had lunch by the river.' },
+    { emoji:'🥪', word:'eat',  past:'ate',   example:'I ate a sandwich.' },
+    { emoji:'👀', word:'see',  past:'saw',   example:'He saw a fox.' },
+    { emoji:'🛠️', word:'make', past:'made',  example:'We made a fire.' },
+    { emoji:'🚪', word:'come', past:'came',  example:'They came late.' },
+    { emoji:'📘', word:'do',   past:'did',   example:'She did her homework.' },
+    { emoji:'📷', word:'take', past:'took',  example:'We took photos.' },
+    { emoji:'💬', word:'say',  past:'said',  example:'Mum said hello.' },
+    { emoji:'🎁', word:'get',  past:'got',   example:'I got a prize.' },
+  ];
+
+  let deck       = [];
+  let knownCount = 0;
+  let repCount   = 0;
+  let isFlipped  = false;
+  let isAnimating = false;
+
+  const cardEl      = document.getElementById('card');
+  const sceneEl     = document.getElementById('scene');
+  const frontEmoji  = document.getElementById('front-emoji');
+  const frontWord   = document.getElementById('front-word');
+  const backPast    = document.getElementById('back-past');
+  const backExample = document.getElementById('back-example');
+  const btnKnow     = document.getElementById('btn-know');
+  const btnRepeat   = document.getElementById('btn-repeat');
+  const progText    = document.getElementById('prog-text');
+  const progPct     = document.getElementById('prog-pct');
+  const progBar     = document.getElementById('prog-bar');
+  const chipLeft    = document.getElementById('chip-left');
+  const chipKnow    = document.getElementById('chip-know');
+  const finishEl    = document.getElementById('finish');
+  const btnRow      = document.getElementById('btn-row');
+
+  function init() {
+    deck       = [...ALL_CARDS];
+    knownCount = 0;
+    repCount   = 0;
+    isFlipped  = false;
+    isAnimating = false;
+    finishEl.style.display = 'none';
+    sceneEl.style.display  = 'block';
+    btnRow.style.display   = 'flex';
+    renderCard();
+    updateUI();
+  }
+
+  function renderCard() {
+    const c = deck[0];
+    frontEmoji.textContent  = c.emoji;
+    frontWord.textContent   = c.word;
+    backPast.textContent    = c.past;
+    backExample.textContent = '📖 ' + c.example;
+    // reset flip
+    cardEl.classList.remove('flipped');
+    isFlipped = false;
+    btnKnow.disabled   = true;
+    btnRepeat.disabled = true;
+  }
+
+  function flipCard() {
+    if (isAnimating) return;
+    isAnimating = true;
+    cardEl.classList.toggle('flipped');
+    isFlipped = !isFlipped;
+    btnKnow.disabled   = !isFlipped;
+    btnRepeat.disabled = !isFlipped;
+    setTimeout(() => { isAnimating = false; }, 560);
+  }
+
+  function know() {
+    if (!isFlipped || isAnimating) return;
+    knownCount++;
+    deck.shift();
+    afterAction();
+  }
+
+  function repeat() {
+    if (!isFlipped || isAnimating) return;
+    repCount++;
+    const card = deck.shift();
+    deck.push(card);
+    afterAction();
+  }
+
+  function afterAction() {
+    updateUI();
+    if (deck.length === 0) { showFinish(); return; }
+    isAnimating = true;
+    // quick slide-out then render next
+    cardEl.style.transition = 'opacity 0.18s, transform 0.18s';
+    cardEl.style.opacity    = '0';
+    cardEl.style.transform  = 'translateX(-30px) rotateY(0deg)';
+    setTimeout(() => {
+      renderCard();
+      cardEl.style.opacity   = '0';
+      cardEl.style.transform = 'translateX(30px)';
+      setTimeout(() => {
+        cardEl.style.transition = 'opacity 0.22s, transform 0.22s';
+        cardEl.style.opacity    = '1';
+        cardEl.style.transform  = 'translateX(0)';
+        setTimeout(() => {
+          cardEl.style.transition = '';
+          cardEl.style.transform  = '';
+          isAnimating = false;
+        }, 230);
+      }, 30);
+    }, 190);
+  }
+
+  function updateUI() {
+    const total   = ALL_CARDS.length;
+    const left    = deck.length;
+    const studied = total - left;
+    const pct     = Math.round((studied / total) * 100);
+
+    progText.textContent = left > 0
+      ? `Card ${studied + 1} of ${total}`
+      : `All done!`;
+    progPct.textContent  = pct + '%';
+    progBar.style.width  = pct + '%';
+    chipLeft.textContent = `📚 Left: ${left}`;
+    chipKnow.textContent = `⭐ Known: ${knownCount}`;
+  }
+
+  function showFinish() {
+    sceneEl.style.display = 'none';
+    btnRow.style.display  = 'none';
+    finishEl.style.display = 'flex';
+    document.getElementById('sum-know').textContent  = knownCount;
+    document.getElementById('sum-rep').textContent   = repCount;
+    document.getElementById('sum-total').textContent = ALL_CARDS.length;
+    const pct = Math.round((knownCount / ALL_CARDS.length) * 100);
+    document.getElementById('sum-pct').textContent   = pct + '%';
+  }
+
+  function restart() { init(); }
+
+  init();
+</script>
+</body>
+</html>
